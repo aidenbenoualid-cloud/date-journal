@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCoupleCode } from '../../../hooks/useCoupleCode';
@@ -18,6 +19,7 @@ export default function StatsPage() {
   const { coupleCode, clearCoupleCode } = useCoupleCode();
   const { visited, wishlist } = usePlaces(coupleCode);
   const router = useRouter();
+  const [leaderboardCat, setLeaderboardCat] = useState('all');
 
   const ratedPlaces = visited.filter((p) => p.rating > 0);
   const avgRating = ratedPlaces.length
@@ -33,10 +35,13 @@ export default function StatsPage() {
   const topRated = [...visited].sort((a, b) => b.rating - a.rating).slice(0, 3);
   const first = [...visited].sort((a, b) => a.createdAt - b.createdAt)[0];
 
-  // Dish leaderboard — flatten all rated menu items across every place
-  const dishLeaderboard = visited
+  const leaderboardPlaces = leaderboardCat === 'all' ? visited : visited.filter((p) => p.category === leaderboardCat);
+  const leaderboardUsedCats = Array.from(new Set(visited.filter((p) => (p.menuItems ?? []).some((m) => m.rating !== undefined)).map((p) => p.category)));
+
+  // Dish leaderboard — flatten all rated menu items across filtered places
+  const dishLeaderboard = leaderboardPlaces
     .flatMap((p) =>
-      p.menuItems
+      (p.menuItems ?? [])
         .filter((m) => m.rating !== undefined)
         .map((m) => ({ dish: m.name, rating: m.rating as number, placeName: p.name, placeId: p.id })),
     )
@@ -154,12 +159,32 @@ export default function StatsPage() {
         )}
 
         {/* Dish leaderboard */}
-        {dishLeaderboard.length > 0 && (
+        {(dishLeaderboard.length > 0 || leaderboardUsedCats.length > 0) && (
           <div className="bg-white rounded-2xl shadow-card overflow-hidden">
             <div className="px-5 pt-5 pb-2">
               <h2 className="text-xs font-bold text-brown-mid uppercase tracking-wider">🏆 Dish Leaderboard</h2>
               <p className="text-xs text-brown-light mt-0.5">Your highest-rated dishes across all restaurants</p>
+              {leaderboardUsedCats.length > 1 && (
+                <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+                  {['all', ...leaderboardUsedCats].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setLeaderboardCat(cat)}
+                      className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold border-2 transition-all ${
+                        leaderboardCat === cat
+                          ? 'bg-primary border-primary text-white'
+                          : 'bg-white border-rose-100 text-brown-mid hover:border-rose-300'
+                      }`}
+                    >
+                      {cat === 'all' ? '🗂 All' : `${CAT_ICONS[cat]} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            {dishLeaderboard.length === 0 && (
+              <p className="px-5 pb-4 text-sm text-brown-light italic">No rated dishes in this category yet</p>
+            )}
             {dishLeaderboard.map((entry, i) => {
               const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
               const barPct = (entry.rating / 10) * 100;

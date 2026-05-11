@@ -5,6 +5,11 @@ import { usePlaces } from '../../../hooks/usePlaces';
 import PlaceCard from '../../../components/PlaceCard';
 import { Place } from '../../../types';
 
+const CAT_ICONS: Record<string, string> = {
+  restaurant: '🍽️', coffee: '☕', bakery: '🥐',
+  bar: '🍸', dessert: '🍰', brunch: '🥞', other: '📍',
+};
+
 function groupByMonth(places: Place[]) {
   const out: Record<string, Place[]> = {};
   places.forEach((p) => {
@@ -18,16 +23,19 @@ export default function JournalPage() {
   const { coupleCode } = useCoupleCode();
   const { visited, loading } = usePlaces(coupleCode);
   const [search, setSearch] = useState('');
+  const [catFilter, setCatFilter] = useState('all');
 
-  const filtered = search
-    ? visited.filter(
-        (p) =>
-          p.name.toLowerCase().includes(search.toLowerCase()) ||
-          p.address.toLowerCase().includes(search.toLowerCase()) ||
-          p.category.includes(search.toLowerCase()) ||
-          p.occasion?.toLowerCase().includes(search.toLowerCase()),
-      )
-    : visited;
+  const usedCats = Array.from(new Set(visited.map((p) => p.category)));
+
+  const filtered = visited.filter((p) => {
+    const matchesCat = catFilter === 'all' || p.category === catFilter;
+    const matchesSearch = !search ||
+      p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.address.toLowerCase().includes(search.toLowerCase()) ||
+      p.category.includes(search.toLowerCase()) ||
+      p.occasion?.toLowerCase().includes(search.toLowerCase());
+    return matchesCat && matchesSearch;
+  });
 
   const groups = groupByMonth(filtered);
 
@@ -52,6 +60,25 @@ export default function JournalPage() {
             <button onClick={() => setSearch('')} className="text-brown-light hover:text-brown-mid text-lg">✕</button>
           )}
         </div>
+
+        {/* Category filter */}
+        {usedCats.length > 1 && (
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+            {['all', ...usedCats].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCatFilter(cat)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all ${
+                  catFilter === cat
+                    ? 'bg-primary border-primary text-white'
+                    : 'bg-white border-rose-100 text-brown-mid hover:border-rose-300'
+                }`}
+              >
+                {cat === 'all' ? '🗂 All' : `${CAT_ICONS[cat]} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Content */}
         {loading ? (

@@ -51,13 +51,10 @@ export default function AddPlacePage() {
     const t = newMenuItem.trim();
     if (!t) return;
     const ratingVal = parseFloat(newMenuItemRating);
+    const hasRating = !isNaN(ratingVal) && ratingVal >= 0 && ratingVal <= 10;
     setMenuItems((prev) => [
       ...prev,
-      {
-        id: Date.now().toString(),
-        name: t,
-        rating: !isNaN(ratingVal) && ratingVal >= 0 && ratingVal <= 10 ? ratingVal : undefined,
-      },
+      { id: Date.now().toString(), name: t, ...(hasRating && { rating: ratingVal }) },
     ]);
     setNewMenuItem('');
     setNewMenuItemRating('');
