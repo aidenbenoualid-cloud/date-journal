@@ -9,8 +9,7 @@ import {
   orderBy,
   Unsubscribe,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from './firebase';
+import { db } from './firebase';
 import { Place } from '../types';
 
 function placesCol(coupleCode: string) {
@@ -60,29 +59,29 @@ export async function deletePlace(coupleCode: string, id: string): Promise<void>
 }
 
 export async function uploadPhoto(
-  coupleCode: string,
-  placeId: string,
+  _coupleCode: string,
+  _placeId: string,
   file: File,
 ): Promise<string> {
-  const filename = `${Date.now()}-${file.name}`;
-  const storageRef = ref(storage, `couples/${coupleCode}/${placeId}/${filename}`);
-  // 45-second timeout per photo — if exceeded, throw so caller can skip and navigate
-  await Promise.race([
-    uploadBytes(storageRef, file, { contentType: file.type }),
-    new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Upload timed out')), 45000),
-    ),
-  ]);
-  return getDownloadURL(storageRef);
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'date journal');
+
+  const res = await fetch(
+    'https://api.cloudinary.com/v1_1/dp6cqa1ne/image/upload',
+    { method: 'POST', body: formData },
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message ?? 'Photo upload failed');
+  }
+  const data = await res.json();
+  return data.secure_url as string;
 }
 
-export async function deletePhoto(url: string): Promise<void> {
-  try {
-    await deleteObject(ref(storage, url));
-  } catch {
-    // already gone
-  }
-}
+// Cloudinary deletion requires a server-side API secret; photos are kept in cloud storage.
+export async function deletePhoto(_url: string): Promise<void> {}
 
 async function nominatim(query: string) {
   const controller = new AbortController();

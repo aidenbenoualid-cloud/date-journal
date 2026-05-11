@@ -1,6 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { initializeFirestore, persistentLocalCache, getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 
 // 🔑 Replace with your Firebase project config
 // Firebase Console → Project Settings → Your apps → Web app
@@ -23,4 +22,3 @@ export const db = isFirstInit
   ? initializeFirestore(app, { localCache: persistentLocalCache() })
   : getFirestore(app);
 
-export const storage = getStorage(app);
