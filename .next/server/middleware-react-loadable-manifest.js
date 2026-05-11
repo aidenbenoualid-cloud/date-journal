@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"app/(main)/map/page.tsx -> ../../../components/LeafletMap\":{\"id\":\"app/(main)/map/page.tsx -> ../../../components/LeafletMap\",\"files\":[\"static/chunks/_app-pages-browser_components_LeafletMap_tsx.js\"]}}"
