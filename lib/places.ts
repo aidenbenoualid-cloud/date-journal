@@ -1,7 +1,7 @@
 import {
   collection,
   doc,
-  addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   onSnapshot,
@@ -30,9 +30,12 @@ export function subscribePlaces(
   );
 }
 
-export async function addPlace(coupleCode: string, place: Omit<Place, 'id'>): Promise<string> {
-  const ref = await addDoc(placesCol(coupleCode), place);
-  return ref.id;
+// Generates an ID and writes locally — does NOT await server confirmation.
+// Firebase offline persistence ensures the data is visible immediately.
+export function addPlace(coupleCode: string, place: Omit<Place, 'id'>): string {
+  const newRef = doc(placesCol(coupleCode));
+  setDoc(newRef, place).catch(console.error);
+  return newRef.id;
 }
 
 export async function updatePlace(
@@ -46,8 +49,9 @@ export async function updatePlace(
   });
 }
 
-export async function deletePlace(coupleCode: string, id: string): Promise<void> {
-  await deleteDoc(doc(db, 'couples', coupleCode, 'places', id));
+// Deletes locally — does NOT await server confirmation.
+export function deletePlace(coupleCode: string, id: string): void {
+  deleteDoc(doc(db, 'couples', coupleCode, 'places', id)).catch(console.error);
 }
 
 export async function uploadPhoto(
