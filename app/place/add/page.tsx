@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCoupleCode } from '../../../hooks/useCoupleCode';
-import { addPlace, updatePlace, uploadPhoto, geocodeAddress } from '../../../lib/places';
+import { addPlace, uploadPhoto, geocodeAddress } from '../../../lib/places';
 import CategoryPicker from '../../../components/CategoryPicker';
 import StarRating from '../../../components/StarRating';
 import PhotoUpload from '../../../components/PhotoUpload';
@@ -68,14 +68,21 @@ export default function AddPlacePage() {
     if (!name.trim() || !address.trim() || !coupleCode) return;
     setSaving(true);
 
-    let savedId: string | null = null;
-
     try {
       setStatus('📍 Finding location…');
       const geo = await geocodeAddress(name, address);
 
+      // Upload photos first so the URL is ready before the place is created
+      const photoUrls: string[] = [];
+      if (photoFiles.length > 0) {
+        setStatus(`📸 Uploading ${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''}…`);
+        for (const file of photoFiles) {
+          photoUrls.push(await uploadPhoto(coupleCode, '', file));
+        }
+      }
+
       setStatus('💾 Saving…');
-      savedId = await addPlace(coupleCode, {
+      await addPlace(coupleCode, {
         name: name.trim(),
         category,
         address: geo?.address ?? address.trim(),
@@ -85,36 +92,18 @@ export default function AddPlacePage() {
         rating: isWishlist ? 0 : rating,
         notes: notes.trim(),
         menuItems,
-        photoUrls: [],
+        photoUrls,
         priceRange,
         occasion: occasion.trim(),
         isWishlist,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
-
-      if (photoFiles.length > 0) {
-        setStatus(`📸 Uploading ${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''}…`);
-        try {
-          const urls: string[] = [];
-          for (const file of photoFiles) {
-            const url = await uploadPhoto(coupleCode, savedId, file);
-            urls.push(url);
-          }
-          await updatePlace(coupleCode, savedId, { photoUrls: urls });
-        } catch (photoErr: any) {
-          alert(`Photo upload failed: ${photoErr?.message ?? String(photoErr)}`);
-        }
-      }
     } catch (err: any) {
-      console.error('Save failed:', err);
-      if (!savedId) {
-        alert(err.message || 'Something went wrong saving the place.');
-        setSaving(false);
-        setStatus('');
-        return;
-      }
-      // Place was saved but something else failed — still navigate
+      alert(err.message || 'Something went wrong saving the place.');
+      setSaving(false);
+      setStatus('');
+      return;
     }
 
     window.location.replace('/journal');
