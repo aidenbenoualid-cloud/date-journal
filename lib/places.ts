@@ -30,11 +30,14 @@ export function subscribePlaces(
   );
 }
 
-// Generates an ID and writes locally — does NOT await server confirmation.
-// Firebase offline persistence ensures the data is visible immediately.
-export function addPlace(coupleCode: string, place: Omit<Place, 'id'>): string {
+// Waits up to 800ms for the local cache write, then moves on regardless
+// of whether the server has acknowledged. Prevents indefinite hangs.
+export async function addPlace(coupleCode: string, place: Omit<Place, 'id'>): Promise<string> {
   const newRef = doc(placesCol(coupleCode));
-  setDoc(newRef, place).catch(console.error);
+  await Promise.race([
+    setDoc(newRef, place),
+    new Promise<void>((resolve) => setTimeout(resolve, 800)),
+  ]);
   return newRef.id;
 }
 
@@ -43,15 +46,20 @@ export async function updatePlace(
   id: string,
   updates: Partial<Omit<Place, 'id'>>,
 ): Promise<void> {
-  await updateDoc(doc(db, 'couples', coupleCode, 'places', id), {
-    ...updates,
-    updatedAt: Date.now(),
-  });
+  await Promise.race([
+    updateDoc(doc(db, 'couples', coupleCode, 'places', id), {
+      ...updates,
+      updatedAt: Date.now(),
+    }),
+    new Promise<void>((resolve) => setTimeout(resolve, 800)),
+  ]);
 }
 
-// Deletes locally — does NOT await server confirmation.
-export function deletePlace(coupleCode: string, id: string): void {
-  deleteDoc(doc(db, 'couples', coupleCode, 'places', id)).catch(console.error);
+export async function deletePlace(coupleCode: string, id: string): Promise<void> {
+  await Promise.race([
+    deleteDoc(doc(db, 'couples', coupleCode, 'places', id)),
+    new Promise<void>((resolve) => setTimeout(resolve, 800)),
+  ]);
 }
 
 export async function uploadPhoto(

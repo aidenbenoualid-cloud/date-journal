@@ -75,7 +75,7 @@ export default function AddPlacePage() {
       const geo = await geocodeAddress(name, address);
 
       setStatus('💾 Saving…');
-      savedId = addPlace(coupleCode, {
+      savedId = await addPlace(coupleCode, {
         name: name.trim(),
         category,
         address: geo?.address ?? address.trim(),
