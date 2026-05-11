@@ -69,15 +69,16 @@ export default function AddPlacePage() {
     setSaving(true);
 
     try {
-      setStatus('💾 Saving…');
+      setStatus('📍 Finding location…');
+      const geo = await geocodeAddress(name, address);
 
-      // Save immediately with the raw address — no waiting on geocoding
+      setStatus('💾 Saving…');
       const id = await addPlace(coupleCode, {
         name: name.trim(),
         category,
-        address: address.trim(),
-        latitude: 0,
-        longitude: 0,
+        address: geo?.address ?? address.trim(),
+        latitude: geo?.latitude ?? 0,
+        longitude: geo?.longitude ?? 0,
         visitDate,
         rating: isWishlist ? 0 : rating,
         notes: notes.trim(),
@@ -88,17 +89,6 @@ export default function AddPlacePage() {
         isWishlist,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-      });
-
-      // Geocode and pin in the background — doesn't block navigation
-      geocodeAddress(name, address).then((geo) => {
-        if (geo) {
-          updatePlace(coupleCode, id, {
-            latitude: geo.latitude,
-            longitude: geo.longitude,
-            address: geo.address,
-          });
-        }
       });
 
       if (photoFiles.length > 0) {
