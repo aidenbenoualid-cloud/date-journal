@@ -102,9 +102,8 @@ export default function AddPlacePage() {
             urls.push(url);
           }
           await updatePlace(coupleCode, savedId, { photoUrls: urls });
-        } catch (photoErr) {
-          console.error('Photo upload failed:', photoErr);
-          // Photos failed but place was saved — navigate anyway
+        } catch (photoErr: any) {
+          alert(`Photo upload failed: ${photoErr?.message ?? photoErr}\n\nThe place was saved without photos.`);
         }
       }
     } catch (err: any) {
