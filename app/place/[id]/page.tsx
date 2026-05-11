@@ -118,6 +118,7 @@ export default function PlaceDetailPage() {
   }
 
   function confirmDelete() {
+    if (!place) return;
     if (confirm(`Remove "${place.name}" from your journal?`)) {
       deletePlace(coupleCode!, place.id).then(() => { window.location.href = '/journal'; });
     }
