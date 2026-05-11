@@ -68,12 +68,14 @@ export default function AddPlacePage() {
     if (!name.trim() || !address.trim() || !coupleCode) return;
     setSaving(true);
 
+    let savedId: string | null = null;
+
     try {
       setStatus('📍 Finding location…');
       const geo = await geocodeAddress(name, address);
 
       setStatus('💾 Saving…');
-      const id = await addPlace(coupleCode, {
+      savedId = await addPlace(coupleCode, {
         name: name.trim(),
         category,
         address: geo?.address ?? address.trim(),
@@ -93,21 +95,30 @@ export default function AddPlacePage() {
 
       if (photoFiles.length > 0) {
         setStatus(`📸 Uploading ${photoFiles.length} photo${photoFiles.length > 1 ? 's' : ''}…`);
-        const urls: string[] = [];
-        for (const file of photoFiles) {
-          const url = await uploadPhoto(coupleCode, id, file);
-          urls.push(url);
+        try {
+          const urls: string[] = [];
+          for (const file of photoFiles) {
+            const url = await uploadPhoto(coupleCode, savedId, file);
+            urls.push(url);
+          }
+          await updatePlace(coupleCode, savedId, { photoUrls: urls });
+        } catch (photoErr) {
+          console.error('Photo upload failed:', photoErr);
+          // Photos failed but place was saved — navigate anyway
         }
-        await updatePlace(coupleCode, id, { photoUrls: urls });
       }
-
-      window.location.href = `/place/${id}`;
     } catch (err: any) {
       console.error('Save failed:', err);
-      alert(err.message || 'Something went wrong.');
-      setSaving(false);
-      setStatus('');
+      if (!savedId) {
+        alert(err.message || 'Something went wrong saving the place.');
+        setSaving(false);
+        setStatus('');
+        return;
+      }
+      // Place was saved but something else failed — still navigate
     }
+
+    window.location.replace('/journal');
   }
 
   return (

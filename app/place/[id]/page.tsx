@@ -117,10 +117,17 @@ export default function PlaceDetailPage() {
     setNewMenuItemRating('');
   }
 
-  function confirmDelete() {
+  async function confirmDelete() {
     if (!place) return;
     if (confirm(`Remove "${place.name}" from your journal?`)) {
-      deletePlace(coupleCode!, place.id).then(() => { window.location.href = '/journal'; });
+      try {
+        await deletePlace(coupleCode!, place.id);
+      } catch (err) {
+        console.error('Delete failed:', err);
+        alert('Failed to delete. Please try again.');
+        return;
+      }
+      window.location.replace('/journal');
     }
   }
 

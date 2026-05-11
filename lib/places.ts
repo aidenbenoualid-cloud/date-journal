@@ -71,7 +71,7 @@ export async function deletePhoto(url: string): Promise<void> {
 
 async function nominatim(query: string) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
+  const timer = setTimeout(() => controller.abort(), 3000);
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
