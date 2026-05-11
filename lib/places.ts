@@ -51,7 +51,7 @@ export async function updatePlace(
       ...updates,
       updatedAt: Date.now(),
     }),
-    new Promise<void>((resolve) => setTimeout(resolve, 800)),
+    new Promise<void>((resolve) => setTimeout(resolve, 5000)),
   ]);
 }
 
@@ -69,7 +69,13 @@ export async function uploadPhoto(
 ): Promise<string> {
   const filename = `${Date.now()}-${file.name}`;
   const storageRef = ref(storage, `couples/${coupleCode}/${placeId}/${filename}`);
-  await uploadBytes(storageRef, file, { contentType: file.type });
+  // 45-second timeout per photo — if exceeded, throw so caller can skip and navigate
+  await Promise.race([
+    uploadBytes(storageRef, file, { contentType: file.type }),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Upload timed out')), 45000),
+    ),
+  ]);
   return getDownloadURL(storageRef);
 }
 
