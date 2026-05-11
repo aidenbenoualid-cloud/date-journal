@@ -64,7 +64,7 @@ export default function PlaceDetailPage() {
   const allPreviews = [...remoteUrls, ...newPreviews];
 
   async function handleSave() {
-    if (!coupleCode) return;
+    if (!coupleCode || !place) return;
     setSaving(true);
     try {
       const uploaded: string[] = [];
