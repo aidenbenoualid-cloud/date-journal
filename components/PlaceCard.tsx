@@ -22,20 +22,6 @@ export default function PlaceCard({ place }: { place: Place }) {
   return (
     <Link href={`/place/${place.id}`} className="block">
       <div className="bg-white rounded-2xl shadow-card overflow-hidden hover:shadow-md transition-shadow group">
-        {place.photoUrls[0] && (
-          <div className="relative h-44 overflow-hidden">
-            <img
-              src={place.photoUrls[0]}
-              alt={place.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            {place.isWishlist && (
-              <span className="absolute top-2 right-2 bg-purple-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                ✨ Want to visit
-              </span>
-            )}
-          </div>
-        )}
         <div className="p-4">
           <div className="flex items-center justify-between mb-1">
             <span

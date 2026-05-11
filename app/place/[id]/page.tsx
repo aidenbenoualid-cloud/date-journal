@@ -41,7 +41,7 @@ export default function PlaceDetailPage() {
   const [remoteUrls, setRemoteUrls] = useState<string[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
-  const [activePhoto, setActivePhoto] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (place) {
@@ -127,24 +127,39 @@ export default function PlaceDetailPage() {
 
   return (
     <div className="min-h-screen bg-cream">
-      {/* Hero */}
-      {place.photoUrls.length > 0 && !editing && (
-        <div className="relative h-64 sm:h-80 bg-brown-dark overflow-hidden">
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white text-3xl leading-none"
+            onClick={() => setLightboxIndex(null)}
+          >
+            ✕
+          </button>
+          {place.photoUrls.length > 1 && (
+            <button
+              className="absolute left-4 text-white text-3xl px-2"
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + place.photoUrls.length) % place.photoUrls.length); }}
+            >
+              ‹
+            </button>
+          )}
           <img
-            src={place.photoUrls[activePhoto] || place.photoUrls[0]}
-            alt={place.name}
-            className="w-full h-full object-cover"
+            src={place.photoUrls[lightboxIndex]}
+            alt=""
+            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
           />
           {place.photoUrls.length > 1 && (
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
-              {place.photoUrls.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActivePhoto(i)}
-                  className={`w-2 h-2 rounded-full transition-all ${i === activePhoto ? 'bg-white scale-125' : 'bg-white/50'}`}
-                />
-              ))}
-            </div>
+            <button
+              className="absolute right-4 text-white text-3xl px-2"
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % place.photoUrls.length); }}
+            >
+              ›
+            </button>
           )}
         </div>
       )}
@@ -211,7 +226,7 @@ export default function PlaceDetailPage() {
                   key={url}
                   src={url}
                   alt=""
-                  onClick={() => setActivePhoto(i)}
+                  onClick={() => setLightboxIndex(i)}
                   className="w-32 h-32 rounded-xl object-cover flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
                 />
               ))}
