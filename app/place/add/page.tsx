@@ -241,7 +241,7 @@ export default function AddPlacePage() {
                 onChange={(e) => setNewMenuItem(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addMenuItem())}
                 placeholder="e.g. Croque Monsieur"
-                className={`${inputCls} flex-1`}
+                className={`${inputCls} flex-1 min-w-0`}
               />
               <input
                 type="number"
@@ -252,7 +252,7 @@ export default function AddPlacePage() {
                 min="0"
                 max="10"
                 step="0.001"
-                className={`${inputCls} w-24`}
+                className="w-16 bg-white border border-rose-100 rounded-xl px-3 py-2.5 text-brown-dark text-sm outline-none focus:border-primary transition-colors placeholder:text-brown-light"
               />
               <button
                 type="button"

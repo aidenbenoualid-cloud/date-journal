@@ -273,7 +273,7 @@ export default function PlaceDetailPage() {
                 min="0"
                 max="10"
                 step="0.001"
-                className="w-24 bg-white border border-rose-100 rounded-xl px-3 py-2 text-sm text-brown-dark outline-none focus:border-primary"
+                className="w-16 bg-white border border-rose-100 rounded-xl px-3 py-2 text-sm text-brown-dark outline-none focus:border-primary"
               />
               <button onClick={addMenuItem} className="px-4 py-2 bg-primary text-white rounded-xl font-bold text-sm">Add</button>
             </div>
