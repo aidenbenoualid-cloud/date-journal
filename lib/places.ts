@@ -46,13 +46,10 @@ export async function updatePlace(
   id: string,
   updates: Partial<Omit<Place, 'id'>>,
 ): Promise<void> {
-  await Promise.race([
-    updateDoc(doc(db, 'couples', coupleCode, 'places', id), {
-      ...updates,
-      updatedAt: Date.now(),
-    }),
-    new Promise<void>((resolve) => setTimeout(resolve, 5000)),
-  ]);
+  await updateDoc(doc(db, 'couples', coupleCode, 'places', id), {
+    ...updates,
+    updatedAt: Date.now(),
+  });
 }
 
 export async function deletePlace(coupleCode: string, id: string): Promise<void> {
