@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Leaflet map */
-@import 'leaflet/dist/leaflet.css';
-
 html, body {
   height: 100%;
 }
