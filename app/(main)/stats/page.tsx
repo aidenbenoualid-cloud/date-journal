@@ -35,6 +35,14 @@ export default function StatsPage() {
   const favorites = visited.filter((p) => p.isFavorite);
   const first = [...visited].sort((a, b) => a.createdAt - b.createdAt)[0];
 
+  const nameCounts = visited.reduce<Record<string, { count: number; id: string; name: string }>>((acc, p) => {
+    const key = p.name.toLowerCase().trim();
+    if (!acc[key]) acc[key] = { count: 0, id: p.id, name: p.name };
+    acc[key].count += 1;
+    return acc;
+  }, {});
+  const mostVisited = Object.values(nameCounts).sort((a, b) => b.count - a.count)[0];
+
   const leaderboardPlaces = leaderboardCat === 'all' ? visited : visited.filter((p) => p.category === leaderboardCat);
   const leaderboardUsedCats = Array.from(new Set(visited.filter((p) => (p.menuItems ?? []).some((m) => m.rating !== undefined)).map((p) => p.category)));
 
@@ -121,6 +129,7 @@ export default function StatsPage() {
           {[
             { emoji: '🎉', label: 'First place', value: first?.name ?? '–', id: first?.id },
             { emoji: '🆕', label: 'Most recent', value: latest?.name ?? '–', id: latest?.id },
+            { emoji: '📍', label: 'Most visited', value: mostVisited ? `${mostVisited.name}${mostVisited.count > 1 ? ` (${mostVisited.count}x)` : ''}` : '–', id: mostVisited?.id },
             { emoji: '🏆', label: 'Top category', value: sortedCats[0] ? `${CAT_ICONS[sortedCats[0][0]]} ${sortedCats[0][0]} (${sortedCats[0][1]})` : '–' },
             { emoji: '📸', label: 'Total photos', value: totalPhotos.toString() },
           ].map((m, i, arr) => (
