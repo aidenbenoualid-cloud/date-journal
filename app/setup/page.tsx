@@ -3,57 +3,79 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCoupleCode } from '../../hooks/useCoupleCode';
 
+function randomCode() {
+  return Math.random().toString(36).slice(2, 6).toUpperCase() +
+         Math.random().toString(36).slice(2, 6).toUpperCase();
+}
+
 export default function SetupPage() {
-  const [code, setCode] = useState('');
   const { saveCoupleCode } = useCoupleCode();
   const router = useRouter();
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (code.trim().length < 4) return;
-    saveCoupleCode(code);
+  const [newCode] = useState(randomCode);
+  const [joinCode, setJoinCode] = useState('');
+
+  function enter(code: string) {
+    saveCoupleCode(code.trim().toUpperCase());
     router.push('/map');
   }
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-6">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
+      <div className="w-full max-w-sm space-y-5">
+        <div className="text-center mb-2">
           <div className="text-7xl mb-4">💕</div>
           <h1 className="text-4xl font-extrabold text-brown-dark">Our Food Journal</h1>
-          <p className="text-brown-mid mt-3 text-sm leading-relaxed">
-            Create a couple code — both of you enter the same one to share your journal.
-          </p>
+          <p className="text-brown-mid mt-2 text-sm">A shared journal for every bite together.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-card p-6 space-y-5">
+        {/* Create new journal */}
+        <div className="bg-white rounded-2xl shadow-card p-6 space-y-4">
           <div>
-            <label className="block text-xs font-bold text-brown-mid uppercase tracking-wider mb-2">
-              Your Couple Code
-            </label>
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="e.g. AIDEN&EMMA"
-              maxLength={20}
-              autoCapitalize="characters"
-              autoCorrect="off"
-              className="w-full text-2xl font-bold text-center text-brown-dark border-b-2 border-primary bg-transparent py-2 outline-none placeholder:text-brown-light tracking-widest"
-            />
-            <p className="text-xs text-brown-light mt-2 text-center">
-              Share this exact code with your partner — both of you must enter it.
-            </p>
+            <p className="text-xs font-bold text-brown-mid uppercase tracking-wider">Start a new journal</p>
+            <p className="text-xs text-brown-light mt-1">Share this code with your partner so they can join.</p>
           </div>
-
+          <div className="bg-cream rounded-xl px-4 py-3 text-center">
+            <span className="text-3xl font-extrabold text-primary tracking-widest">{newCode}</span>
+          </div>
           <button
-            type="submit"
-            disabled={code.trim().length < 4}
-            className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-md hover:bg-primary-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => enter(newCode)}
+            className="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary-dark transition-colors"
           >
-            Start Our Journal →
+            Create with this code →
           </button>
-        </form>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-rose-100" />
+          <span className="text-xs text-brown-light font-medium">or</span>
+          <div className="flex-1 h-px bg-rose-100" />
+        </div>
+
+        {/* Join existing journal */}
+        <div className="bg-white rounded-2xl shadow-card p-6 space-y-4">
+          <div>
+            <p className="text-xs font-bold text-brown-mid uppercase tracking-wider">Join a partner's journal</p>
+            <p className="text-xs text-brown-light mt-1">Enter the code your partner already created.</p>
+          </div>
+          <input
+            type="text"
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+            placeholder="Enter couple code…"
+            maxLength={20}
+            autoCapitalize="characters"
+            autoCorrect="off"
+            className="w-full text-xl font-bold text-center text-brown-dark border-2 border-rose-100 rounded-xl bg-transparent py-3 outline-none placeholder:text-brown-light tracking-widest focus:border-primary transition-colors"
+          />
+          <button
+            onClick={() => enter(joinCode)}
+            disabled={joinCode.trim().length < 4}
+            className="w-full bg-white border-2 border-primary text-primary font-bold py-3.5 rounded-xl hover:bg-rose-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Join journal →
+          </button>
+        </div>
       </div>
     </div>
   );
