@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import { Place } from '../types';
 import StarRating from './StarRating';
+import { useCoupleCode } from '../hooks/useCoupleCode';
+import { updatePlace } from '../lib/places';
 
 const CAT_COLORS: Record<string, string> = {
   restaurant: '#C4614A', coffee: '#8B5E3C', bakery: '#D4A853',
@@ -18,11 +20,27 @@ function fmtDate(iso: string) {
 }
 
 export default function PlaceCard({ place }: { place: Place }) {
+  const { coupleCode } = useCoupleCode();
   const color = CAT_COLORS[place.category];
+
+  function toggleFavorite(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!coupleCode) return;
+    updatePlace(coupleCode, place.id, { isFavorite: !place.isFavorite });
+  }
+
   return (
     <Link href={`/place/${place.id}`} className="block">
-      <div className="bg-white rounded-2xl shadow-card overflow-hidden hover:shadow-md transition-shadow group">
-        <div className="p-4">
+      <div className="relative bg-white rounded-2xl shadow-card overflow-hidden hover:shadow-md transition-shadow group">
+        <button
+          onClick={toggleFavorite}
+          className="absolute top-3 right-3 z-10 text-xl leading-none transition-transform active:scale-125"
+          aria-label={place.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          {place.isFavorite ? '★' : '☆'}
+        </button>
+        <div className="p-4 pr-10">
           <div className="flex items-center justify-between mb-1">
             <span
               className="text-xs font-bold px-2 py-0.5 rounded-full"

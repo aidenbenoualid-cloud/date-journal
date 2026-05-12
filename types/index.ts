@@ -23,6 +23,7 @@ export interface Place {
   priceRange: PriceRange;
   occasion: string;
   isWishlist: boolean;
+  isFavorite?: boolean;
   createdAt: number;
   updatedAt: number;
 }

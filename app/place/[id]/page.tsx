@@ -181,6 +181,13 @@ export default function PlaceDetailPage() {
               </>
             ) : (
               <>
+                <button
+                  onClick={() => coupleCode && updatePlace(coupleCode, place.id, { isFavorite: !place.isFavorite })}
+                  className="text-2xl leading-none transition-transform active:scale-125"
+                  aria-label={place.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {place.isFavorite ? '★' : '☆'}
+                </button>
                 <button onClick={() => setEditing(true)} className="text-sm font-bold text-primary hover:underline">Edit</button>
                 <button onClick={confirmDelete} className="text-sm font-semibold text-red-400 hover:underline">Delete</button>
               </>

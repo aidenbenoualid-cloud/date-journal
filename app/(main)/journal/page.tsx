@@ -24,17 +24,19 @@ export default function JournalPage() {
   const { visited, loading } = usePlaces(coupleCode);
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('all');
+  const [ratingFilter, setRatingFilter] = useState(0);
 
   const usedCats = Array.from(new Set(visited.map((p) => p.category)));
 
   const filtered = visited.filter((p) => {
     const matchesCat = catFilter === 'all' || p.category === catFilter;
+    const matchesRating = ratingFilter === 0 || p.rating === ratingFilter;
     const matchesSearch = !search ||
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.address.toLowerCase().includes(search.toLowerCase()) ||
       p.category.includes(search.toLowerCase()) ||
       p.occasion?.toLowerCase().includes(search.toLowerCase());
-    return matchesCat && matchesSearch;
+    return matchesCat && matchesRating && matchesSearch;
   });
 
   const groups = groupByMonth(filtered);
@@ -79,6 +81,23 @@ export default function JournalPage() {
             ))}
           </div>
         )}
+
+        {/* Rating filter */}
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+          {[0, 1, 2, 3, 4, 5].map((r) => (
+            <button
+              key={r}
+              onClick={() => setRatingFilter(r)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all ${
+                ratingFilter === r
+                  ? 'bg-primary border-primary text-white'
+                  : 'bg-white border-rose-100 text-brown-mid hover:border-rose-300'
+              }`}
+            >
+              {r === 0 ? 'All ★' : '★'.repeat(r)}
+            </button>
+          ))}
+        </div>
 
         {/* Content */}
         {loading ? (

@@ -32,7 +32,7 @@ export default function StatsPage() {
   }, {});
   const sortedCats = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
 
-  const topRated = [...visited].sort((a, b) => b.rating - a.rating).slice(0, 3);
+  const favorites = visited.filter((p) => p.isFavorite);
   const first = [...visited].sort((a, b) => a.createdAt - b.createdAt)[0];
 
   const leaderboardPlaces = leaderboardCat === 'all' ? visited : visited.filter((p) => p.category === leaderboardCat);
@@ -138,25 +138,29 @@ export default function StatsPage() {
           ))}
         </div>
 
-        {/* Top rated */}
-        {topRated.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-card overflow-hidden">
-            <div className="px-5 pt-5 pb-2">
-              <h2 className="text-xs font-bold text-brown-mid uppercase tracking-wider">Top Rated</h2>
-            </div>
-            {topRated.map((p, i) => (
+        {/* Favorites */}
+        <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+          <div className="px-5 pt-5 pb-2">
+            <h2 className="text-xs font-bold text-brown-mid uppercase tracking-wider">★ Favourites</h2>
+          </div>
+          {favorites.length === 0 ? (
+            <p className="px-5 pb-4 text-sm text-brown-light italic">
+              Tap the ☆ on any journal entry to add it here.
+            </p>
+          ) : (
+            favorites.map((p, i) => (
               <Link
                 key={p.id}
                 href={`/place/${p.id}`}
-                className={`flex items-center gap-3 px-5 py-3.5 hover:bg-rose-50 transition-colors ${i < topRated.length - 1 ? 'border-b border-rose-50' : ''}`}
+                className={`flex items-center gap-3 px-5 py-3.5 hover:bg-rose-50 transition-colors ${i < favorites.length - 1 ? 'border-b border-rose-50' : ''}`}
               >
-                <span className="text-xl">{['🥇', '🥈', '🥉'][i]}</span>
+                <span className="text-xl">★</span>
                 <span className="text-sm text-brown-dark font-semibold flex-1 truncate">{p.name}</span>
                 <StarRating value={p.rating} readonly size="sm" />
               </Link>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
 
         {/* Dish leaderboard */}
         {(dishLeaderboard.length > 0 || leaderboardUsedCats.length > 0) && (
