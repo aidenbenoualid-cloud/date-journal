@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCoupleCode } from '../../../hooks/useCoupleCode';
 import { addPlace, uploadPhoto, geocodeAddress } from '../../../lib/places';
@@ -34,6 +34,37 @@ export default function AddPlacePage() {
   const [newMenuItemRating, setNewMenuItemRating] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
+  const [suggestions, setSuggestions] = useState<{ label: string; lat: number; lon: number }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [resolvedGeo, setResolvedGeo] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (address.length < 3) { setSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=5`,
+        );
+        const data = await res.json();
+        setSuggestions(
+          data.features.map((f: any) => {
+            const p = f.properties;
+            const parts = [
+              p.name,
+              p.housenumber && p.street ? `${p.housenumber} ${p.street}` : p.street,
+              p.city,
+              p.state,
+              p.country,
+            ].filter(Boolean);
+            return { label: parts.join(', '), lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] };
+          }),
+        );
+        setShowSuggestions(true);
+      } catch { /* ignore */ }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [address]);
 
   function handleAddPhotos(files: File[]) {
     setPhotoFiles((prev) => [...prev, ...files]);
@@ -67,7 +98,7 @@ export default function AddPlacePage() {
 
     try {
       setStatus('📍 Finding location…');
-      const geo = await geocodeAddress(name, address);
+      const geo = resolvedGeo ?? await geocodeAddress(name, address);
 
       // Upload photos first so the URL is ready before the place is created
       const photoUrls: string[] = [];
@@ -138,14 +169,41 @@ export default function AddPlacePage() {
 
           {/* Address */}
           <Field label="Address or Area *" hint="We'll auto-pin it on the map">
-            <input
-              required
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="e.g. 123 Rue Saint-Denis, Montreal"
-              className={inputCls}
-            />
+            <div className="relative">
+              <input
+                ref={addressRef}
+                required
+                type="text"
+                value={address}
+                onChange={(e) => { setAddress(e.target.value); setResolvedGeo(null); }}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onKeyDown={(e) => e.key === 'Escape' && setShowSuggestions(false)}
+                placeholder="e.g. 123 Rue Saint-Denis, Montreal"
+                className={inputCls}
+                autoComplete="off"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white rounded-xl border border-rose-100 shadow-lg overflow-hidden">
+                  {suggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setAddress(s.label);
+                        setResolvedGeo({ latitude: s.lat, longitude: s.lon, address: s.label });
+                        setShowSuggestions(false);
+                        addressRef.current?.blur();
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-brown-dark hover:bg-rose-50 border-b border-rose-50 last:border-0 truncate"
+                    >
+                      📍 {s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </Field>
 
           {/* Category */}
