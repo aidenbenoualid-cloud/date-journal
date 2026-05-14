@@ -37,14 +37,23 @@ export default function AddPlacePage() {
   const [suggestions, setSuggestions] = useState<{ label: string; lat: number; lon: number }[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [resolvedGeo, setResolvedGeo] = useState<{ latitude: number; longitude: number; address: string } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const addressRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => setUserLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => { /* permission denied or unavailable — autocomplete still works without it */ },
+    );
+  }, []);
 
   useEffect(() => {
     if (address.length < 3) { setSuggestions([]); return; }
     const timer = setTimeout(async () => {
       try {
+        const locationBias = userLocation ? `&lat=${userLocation.lat}&lon=${userLocation.lon}` : '';
         const res = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=5`,
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=5${locationBias}`,
         );
         const data = await res.json();
         setSuggestions(
