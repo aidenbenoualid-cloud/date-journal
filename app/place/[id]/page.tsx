@@ -42,6 +42,8 @@ export default function PlaceDetailPage() {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [editIsWishlist, setEditIsWishlist] = useState(false);
+  const [editVisitDate, setEditVisitDate] = useState('');
 
   useEffect(() => {
     if (place) {
@@ -49,6 +51,8 @@ export default function PlaceDetailPage() {
       setNotes(place.notes);
       setMenuItems(place.menuItems);
       setRemoteUrls(place.photoUrls);
+      setEditIsWishlist(place.isWishlist);
+      setEditVisitDate(place.visitDate);
     }
   }, [place]);
 
@@ -72,8 +76,12 @@ export default function PlaceDetailPage() {
         uploaded.push(await uploadPhoto(coupleCode, place.id, file));
       }
       await updatePlace(coupleCode, place.id, {
-        rating, notes, menuItems,
+        rating: editIsWishlist ? 0 : rating,
+        notes,
+        menuItems,
         photoUrls: [...remoteUrls, ...uploaded],
+        isWishlist: editIsWishlist,
+        visitDate: editVisitDate,
       });
       setNewFiles([]);
       setNewPreviews([]);
@@ -212,9 +220,46 @@ export default function PlaceDetailPage() {
           {place.occasion && <p className="text-sm text-amber-600 font-medium mt-1">🎉 {place.occasion}</p>}
         </div>
 
+        {/* Wishlist → journal conversion (edit mode only) */}
+        {editing && place.isWishlist && (
+          <div className={`rounded-2xl p-4 flex items-center justify-between ${editIsWishlist ? 'bg-purple-50' : 'bg-green-50'}`}>
+            <div>
+              <p className={`font-semibold text-sm ${editIsWishlist ? 'text-purple-700' : 'text-green-700'}`}>
+                {editIsWishlist ? '✨ On your wishlist' : '✅ Mark as visited'}
+              </p>
+              <p className={`text-xs mt-0.5 ${editIsWishlist ? 'text-purple-500' : 'text-green-600'}`}>
+                {editIsWishlist ? 'Toggle to move this to your journal' : 'This will be saved as a journal entry'}
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!editIsWishlist}
+                onChange={(e) => {
+                  setEditIsWishlist(!e.target.checked);
+                  if (e.target.checked && !editVisitDate) {
+                    setEditVisitDate(new Date().toISOString().split('T')[0]);
+                  }
+                }}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500" />
+            </label>
+          </div>
+        )}
+
         {/* Rating */}
-        {!place.isWishlist && (
-          <Section title="Rating">
+        {(!place.isWishlist || (editing && !editIsWishlist)) && (
+          <Section title={editing && !editIsWishlist && place.isWishlist ? 'Visit Date & Rating' : 'Rating'}>
+            {editing && !editIsWishlist && place.isWishlist && (
+              <input
+                type="date"
+                value={editVisitDate}
+                onChange={(e) => setEditVisitDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full bg-white border border-rose-100 rounded-xl px-4 py-2.5 text-brown-dark text-sm outline-none focus:border-primary transition-colors mb-2"
+              />
+            )}
             <StarRating value={rating} onChange={editing ? setRating : undefined} size="lg" readonly={!editing} />
           </Section>
         )}
