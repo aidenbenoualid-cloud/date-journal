@@ -51,23 +51,17 @@ export default function AddPlacePage() {
     if (address.length < 3) { setSuggestions([]); return; }
     const timer = setTimeout(async () => {
       try {
-        const locationBias = userLocation ? `&lat=${userLocation.lat}&lon=${userLocation.lon}` : '';
+        const locationBias = userLocation ? `&bias=proximity:${userLocation.lon},${userLocation.lat}` : '';
         const res = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=5${locationBias}`,
+          `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(address)}&limit=5&apiKey=1a55e66d967e4215a1fe6e70b9ab046b${locationBias}`,
         );
         const data = await res.json();
         setSuggestions(
-          data.features.map((f: any) => {
-            const p = f.properties;
-            const parts = [
-              p.name,
-              p.housenumber && p.street ? `${p.housenumber} ${p.street}` : p.street,
-              p.city,
-              p.state,
-              p.country,
-            ].filter(Boolean);
-            return { label: parts.join(', '), lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0] };
-          }),
+          data.features.map((f: any) => ({
+            label: f.properties.formatted,
+            lat: f.properties.lat,
+            lon: f.properties.lon,
+          })),
         );
         setShowSuggestions(true);
       } catch { /* ignore */ }
