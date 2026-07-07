@@ -103,6 +103,10 @@ export default function AddPlacePage() {
   function prefillForm(data: any) {
     if (data.name) setName(data.name);
     if (data.address) setAddress(data.address);
+    // If the server resolved full coordinates, store them so save skips geocoding
+    if (data.address && data.latitude && data.longitude) {
+      setResolvedGeo({ address: data.address, latitude: data.latitude, longitude: data.longitude });
+    }
     if (data.category && CATEGORIES.includes(data.category)) setCategory(data.category);
     if (data.rating && data.rating > 0) setRating(Math.min(5, Math.max(0, data.rating)));
     if (data.priceRange) setPriceRange(Math.min(4, Math.max(1, data.priceRange)) as PriceRange);
