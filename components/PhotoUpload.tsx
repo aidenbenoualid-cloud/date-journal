@@ -48,7 +48,6 @@ export default function PhotoUpload({ previews, onAdd, onRemove, disabled }: Pro
         type="file"
         accept="image/*"
         multiple
-        capture="environment"
         className="hidden"
         onChange={handleFiles}
       />
