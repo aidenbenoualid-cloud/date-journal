@@ -9,7 +9,7 @@ const EXTRACTION_PROMPT = `You are helping fill out a restaurant journal entry f
 
 {
   "name": "restaurant or place name (string, empty if not mentioned)",
-  "address": "address or area mentioned (string, empty if not mentioned)",
+  "address": "full street address including street number, city, and postal code if you know it. If the person mentions the restaurant name and city/neighbourhood, use your knowledge to recall the full address. If you are not confident in the exact address, use whatever location detail was mentioned (e.g. the street or neighbourhood). Never guess a street number you are not sure about — leave it out rather than invent one.",
   "category": "one of: restaurant, coffee, bakery, bar, dessert, brunch, other",
   "rating": 0 to 5 integer (0 if not mentioned, infer from context like 'amazing' = 5, 'good' = 4, 'ok' = 3),
   "priceRange": 1 to 4 integer (1=$, 2=$$, 3=$$$, 4=$$$$, default 2 if not mentioned),
@@ -38,25 +38,6 @@ async function transcribeAudio(audioBlob: Blob): Promise<string> {
   return typeof transcription === 'string' ? transcription : (transcription as any).text ?? '';
 }
 
-async function lookupAddress(name: string, hint: string): Promise<{ address: string; latitude: number; longitude: number } | null> {
-  const query = [name, hint].filter(Boolean).join(' ');
-  if (!query.trim()) return null;
-  try {
-    const res = await fetch(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(query)}&limit=1&type=amenity&apiKey=1a55e66d967e4215a1fe6e70b9ab046b`,
-    );
-    const data = await res.json();
-    const f = data.features?.[0];
-    if (!f) return null;
-    return {
-      address: f.properties.formatted,
-      latitude: f.properties.lat,
-      longitude: f.properties.lon,
-    };
-  } catch {
-    return null;
-  }
-}
 
 async function extractPlaceData(transcript: string) {
   const message = await anthropic.messages.create({
@@ -104,17 +85,6 @@ export async function POST(req: NextRequest) {
     }
 
     const placeData = await extractPlaceData(transcript);
-
-    // Try to resolve a full street address from the place name + any location hint Claude found
-    if (placeData.name) {
-      const geo = await lookupAddress(placeData.name, placeData.address ?? '');
-      if (geo) {
-        placeData.address = geo.address;
-        placeData.latitude = geo.latitude;
-        placeData.longitude = geo.longitude;
-      }
-    }
-
     return NextResponse.json({ ...placeData, transcript });
   } catch (err: any) {
     console.error('AI entry error:', err);
