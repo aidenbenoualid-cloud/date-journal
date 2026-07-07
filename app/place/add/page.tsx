@@ -13,6 +13,11 @@ const PRICES: { value: PriceRange; label: string }[] = [
   { value: 3, label: '$$$' }, { value: 4, label: '$$$$' },
 ];
 const OCCASIONS = ['Date night', 'Anniversary', 'Birthday', 'Celebration', 'Casual'];
+const CATEGORIES: Category[] = ['restaurant', 'coffee', 'bakery', 'bar', 'dessert', 'brunch', 'other'];
+const CAT_ICONS: Record<string, string> = {
+  restaurant: '🍽️', coffee: '☕', bakery: '🥐',
+  bar: '🍸', dessert: '🍰', brunch: '🥞', other: '📍',
+};
 
 export default function AddPlacePage() {
   const { coupleCode } = useCoupleCode();
@@ -32,6 +37,7 @@ export default function AddPlacePage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [newMenuItem, setNewMenuItem] = useState('');
   const [newMenuItemRating, setNewMenuItemRating] = useState<string>('');
+  const [newMenuItemCategory, setNewMenuItemCategory] = useState<Category>('restaurant');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState('');
   const [suggestions, setSuggestions] = useState<{ label: string; lat: number; lon: number }[]>([]);
@@ -88,10 +94,11 @@ export default function AddPlacePage() {
     const hasRating = !isNaN(ratingVal) && ratingVal >= 0 && ratingVal <= 10;
     setMenuItems((prev) => [
       ...prev,
-      { id: Date.now().toString(), name: t, ...(hasRating && { rating: ratingVal }) },
+      { id: Date.now().toString(), name: t, ...(hasRating && { rating: ratingVal }), category: newMenuItemCategory },
     ]);
     setNewMenuItem('');
     setNewMenuItemRating('');
+    setNewMenuItemCategory(category);
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -283,6 +290,9 @@ export default function AddPlacePage() {
           <Field label="What We Ordered">
             {menuItems.map((m) => (
               <div key={m.id} className="flex items-center gap-2 py-1.5 border-b border-rose-50 last:border-0">
+                {m.category && m.category !== category && (
+                  <span className="text-sm flex-shrink-0">{CAT_ICONS[m.category]}</span>
+                )}
                 <span className="text-brown-dark text-sm flex-1">{m.name}</span>
                 {m.rating !== undefined && (
                   <span className="text-xs font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full">
@@ -320,7 +330,23 @@ export default function AddPlacePage() {
                 Add
               </button>
             </div>
-            <p className="text-xs text-brown-light mt-1">Rate each dish out of 10 (optional)</p>
+            <div className="flex gap-1.5 flex-wrap mt-2">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setNewMenuItemCategory(cat)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                    newMenuItemCategory === cat
+                      ? 'bg-primary border-primary text-white'
+                      : 'bg-white border-rose-100 text-brown-mid hover:border-rose-300'
+                  }`}
+                >
+                  {CAT_ICONS[cat]} {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-brown-light mt-1">Rate each dish out of 10 (optional) · Tag its category for the leaderboard</p>
           </Field>
 
           {/* Photos */}

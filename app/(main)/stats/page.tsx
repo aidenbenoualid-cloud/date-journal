@@ -43,16 +43,28 @@ export default function StatsPage() {
   }, {});
   const mostVisited = Object.values(nameCounts).sort((a, b) => b.count - a.count)[0];
 
-  const leaderboardPlaces = leaderboardCat === 'all' ? visited : visited.filter((p) => p.category === leaderboardCat);
-  const leaderboardUsedCats = Array.from(new Set(visited.filter((p) => (p.menuItems ?? []).some((m) => m.rating !== undefined)).map((p) => p.category)));
+  const leaderboardUsedCats = Array.from(new Set(
+    visited.flatMap((p) =>
+      (p.menuItems ?? [])
+        .filter((m) => m.rating !== undefined)
+        .map((m) => m.category ?? p.category),
+    ),
+  ));
 
-  // Dish leaderboard — flatten all rated menu items across filtered places
-  const dishLeaderboard = leaderboardPlaces
+  // Dish leaderboard — filter at item level using each item's own category tag
+  const dishLeaderboard = visited
     .flatMap((p) =>
       (p.menuItems ?? [])
         .filter((m) => m.rating !== undefined)
-        .map((m) => ({ dish: m.name, rating: m.rating as number, placeName: p.name, placeId: p.id })),
+        .map((m) => ({
+          dish: m.name,
+          rating: m.rating as number,
+          placeName: p.name,
+          placeId: p.id,
+          itemCat: m.category ?? p.category,
+        })),
     )
+    .filter((item) => leaderboardCat === 'all' || item.itemCat === leaderboardCat)
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 10);
   const latest = visited[0];

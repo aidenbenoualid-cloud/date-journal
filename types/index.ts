@@ -6,6 +6,7 @@ export interface MenuItem {
   name: string;
   notes?: string;
   rating?: number;
+  category?: Category;
 }
 
 export interface Place {

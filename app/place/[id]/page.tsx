@@ -7,7 +7,9 @@ import { usePlaces } from '../../../hooks/usePlaces';
 import { updatePlace, deletePlace, uploadPhoto } from '../../../lib/places';
 import StarRating from '../../../components/StarRating';
 import PhotoUpload from '../../../components/PhotoUpload';
-import { MenuItem } from '../../../types';
+import { Category, MenuItem } from '../../../types';
+
+const ALL_CATEGORIES: Category[] = ['restaurant', 'coffee', 'bakery', 'bar', 'dessert', 'brunch', 'other'];
 
 const CAT_COLORS: Record<string, string> = {
   restaurant: '#C4614A', coffee: '#8B5E3C', bakery: '#D4A853',
@@ -38,6 +40,7 @@ export default function PlaceDetailPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [newMenuItem, setNewMenuItem] = useState('');
   const [newMenuItemRating, setNewMenuItemRating] = useState<string>('');
+  const [newMenuItemCategory, setNewMenuItemCategory] = useState<Category>('' as Category);
   const [remoteUrls, setRemoteUrls] = useState<string[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
@@ -53,6 +56,7 @@ export default function PlaceDetailPage() {
       setRemoteUrls(place.photoUrls);
       setEditIsWishlist(place.isWishlist);
       setEditVisitDate(place.visitDate);
+      setNewMenuItemCategory(place.category);
     }
   }, [place]);
 
@@ -116,10 +120,11 @@ export default function PlaceDetailPage() {
     const hasRating = !isNaN(ratingVal) && ratingVal >= 0 && ratingVal <= 10;
     setMenuItems((p) => [
       ...p,
-      { id: Date.now().toString(), name: t, ...(hasRating && { rating: ratingVal }) },
+      { id: Date.now().toString(), name: t, ...(hasRating && { rating: ratingVal }), category: newMenuItemCategory || place?.category },
     ]);
     setNewMenuItem('');
     setNewMenuItemRating('');
+    setNewMenuItemCategory(place?.category ?? '' as Category);
   }
 
   async function handleShare() {
@@ -327,6 +332,9 @@ export default function PlaceDetailPage() {
           )}
           {menuItems.map((m) => (
             <div key={m.id} className="flex items-center gap-2 py-2 border-b border-rose-50 last:border-0">
+              {m.category && m.category !== place.category && (
+                <span className="text-sm flex-shrink-0">{CAT_ICONS[m.category]}</span>
+              )}
               <span className="text-sm text-brown-dark flex-1">{m.name}</span>
               {m.rating !== undefined && (
                 <span className="text-xs font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full flex-shrink-0">
@@ -362,7 +370,25 @@ export default function PlaceDetailPage() {
               <button onClick={addMenuItem} className="px-4 py-2 bg-primary text-white rounded-xl font-bold text-sm">Add</button>
             </div>
           )}
-          {editing && <p className="text-xs text-brown-light mt-1">Score out of 10 (optional)</p>}
+          {editing && (
+            <div className="flex gap-1.5 flex-wrap mt-2">
+              {ALL_CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setNewMenuItemCategory(cat)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                    newMenuItemCategory === cat
+                      ? 'bg-primary border-primary text-white'
+                      : 'bg-white border-rose-100 text-brown-mid hover:border-rose-300'
+                  }`}
+                >
+                  {CAT_ICONS[cat]} {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </button>
+              ))}
+            </div>
+          )}
+          {editing && <p className="text-xs text-brown-light mt-1">Score out of 10 (optional) · Tag its category for the leaderboard</p>}
         </Section>
 
         {/* Notes */}
