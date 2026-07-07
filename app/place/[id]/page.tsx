@@ -132,14 +132,12 @@ export default function PlaceDetailPage() {
       `${catIcon} ${place.name}`,
       `${place.category.charAt(0).toUpperCase() + place.category.slice(1)} · ${priceStr}`,
       `📍 ${place.address}`,
-      !place.isWishlist && stars ? `${stars}` : '',
+      !place.isWishlist && stars ? `${stars} (${place.rating}/5)` : '',
       !place.isWishlist ? `📅 ${fmtDate(place.visitDate)}` : '✨ On our wishlist',
-      place.occasion ? `🎉 ${place.occasion}` : '',
-      place.notes ? `\n"${place.notes}"` : '',
       place.menuItems.length > 0
         ? `\nWhat we ordered:\n${place.menuItems.map((m) => `• ${m.name}${m.rating !== undefined ? ` — ${m.rating}/10` : ''}`).join('\n')}`
         : '',
-      `\nTry our date journal: ${window.location.origin}`,
+      `\nTry the date journal for yourself: ${window.location.origin}`,
     ].filter(Boolean);
 
     const text = lines.join('\n');
