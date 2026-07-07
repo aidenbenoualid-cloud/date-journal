@@ -1,8 +1,0 @@
-{
-  "/place/add/page": "app/place/add/page.js",
-  "/place/[id]/page": "app/place/[id]/page.js",
-  "/(main)/journal/page": "app/(main)/journal/page.js",
-  "/(main)/wishlist/page": "app/(main)/wishlist/page.js",
-  "/(main)/stats/page": "app/(main)/stats/page.js",
-  "/(main)/map/page": "app/(main)/map/page.js"
-}
