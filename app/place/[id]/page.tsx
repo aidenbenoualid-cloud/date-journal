@@ -122,6 +122,42 @@ export default function PlaceDetailPage() {
     setNewMenuItemRating('');
   }
 
+  async function handleShare() {
+    if (!place) return;
+    const catIcon = CAT_ICONS[place.category];
+    const priceStr = ['', '$', '$$', '$$$', '$$$$'][place.priceRange];
+    const stars = place.rating > 0 ? '⭐'.repeat(place.rating) : null;
+
+    const lines: string[] = [
+      `${catIcon} ${place.name}`,
+      `${place.category.charAt(0).toUpperCase() + place.category.slice(1)} · ${priceStr}`,
+      `📍 ${place.address}`,
+      !place.isWishlist && stars ? `${stars}` : '',
+      !place.isWishlist ? `📅 ${fmtDate(place.visitDate)}` : '✨ On our wishlist',
+      place.occasion ? `🎉 ${place.occasion}` : '',
+      place.notes ? `\n"${place.notes}"` : '',
+      place.menuItems.length > 0
+        ? `\nWhat we ordered:\n${place.menuItems.map((m) => `• ${m.name}${m.rating !== undefined ? ` — ${m.rating}/10` : ''}`).join('\n')}`
+        : '',
+      `\nTry our date journal: ${window.location.origin}`,
+    ].filter(Boolean);
+
+    const text = lines.join('\n');
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: place.name, text });
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        await navigator.clipboard.writeText(text);
+        alert('Copied to clipboard!');
+      }
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert('Copied to clipboard!');
+    }
+  }
+
   async function confirmDelete() {
     if (!place) return;
     if (confirm(`Remove "${place.name}" from your journal?`)) {
@@ -196,6 +232,7 @@ export default function PlaceDetailPage() {
                 >
                   {place.isFavorite ? '★' : '☆'}
                 </button>
+                <button onClick={handleShare} className="text-sm font-bold text-brown-mid hover:text-primary">Share</button>
                 <button onClick={() => setEditing(true)} className="text-sm font-bold text-primary hover:underline">Edit</button>
                 <button onClick={confirmDelete} className="text-sm font-semibold text-red-400 hover:underline">Delete</button>
               </>
