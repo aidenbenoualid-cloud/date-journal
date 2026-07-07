@@ -112,7 +112,7 @@ export default function AddPlacePage() {
       setMenuItems(
         data.menuItems.map((m: any, i: number) => ({
           id: Date.now().toString() + i,
-          name: m.name ?? '',
+          name: (m.name ?? '').toUpperCase(),
           ...(m.rating !== undefined && m.rating !== null && { rating: m.rating }),
           category: data.category && CATEGORIES.includes(data.category) ? data.category : 'restaurant',
         })).filter((m: MenuItem) => m.name),

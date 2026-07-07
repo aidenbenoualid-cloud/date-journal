@@ -15,7 +15,7 @@ const EXTRACTION_PROMPT = `You are helping fill out a restaurant journal entry f
   "priceRange": 1 to 4 integer (1=$, 2=$$, 3=$$$, 4=$$$$, default 2 if not mentioned),
   "notes": "summary of the experience in their own words (string)",
   "occasion": "occasion if mentioned like 'date night', 'birthday', etc. (empty string if not mentioned)",
-  "menuItems": [{"name": "dish name", "rating": 0 to 10 number with up to 1 decimal place (e.g. 9.3), or omit if not mentioned}]
+  "menuItems": [{"name": "dish name", "rating": 0 to 10 number with up to 3 decimal places (e.g. 9.337), or omit if not mentioned}]
 }
 
 For category: infer from context if not stated (e.g. 'coffee shop' → coffee, 'brunch spot' → brunch, 'bar' → bar).
