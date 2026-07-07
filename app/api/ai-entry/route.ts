@@ -26,19 +26,14 @@ async function transcribeAudio(audioBlob: Blob): Promise<string> {
   // Audio is held in memory only for the duration of this function call.
   // It is never written to disk, logged, or stored anywhere.
   const arrayBuffer = await audioBlob.arrayBuffer();
-  let buffer: Buffer | null = Buffer.from(arrayBuffer);
 
-  const file = new File([buffer], 'audio.webm', { type: audioBlob.type || 'audio/webm' });
+  const file = new File([arrayBuffer], 'audio.webm', { type: audioBlob.type || 'audio/webm' });
 
   const transcription = await groq.audio.transcriptions.create({
     file,
     model: 'whisper-large-v3',
     response_format: 'text',
   });
-
-  // Explicitly clear the audio buffer from memory once transcription is done
-  buffer.fill(0);
-  buffer = null;
 
   return typeof transcription === 'string' ? transcription : (transcription as any).text ?? '';
 }
